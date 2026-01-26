@@ -1,13 +1,14 @@
 <script setup>
+import {computed} from "vue";
 import IconSearch from "@/components/icons/IconSearch.vue";
 
-defineProps({
+const props = defineProps({
   buttonText: String,
   label: String,
   placeholder: String,
   type: {
     type: String,
-    default: 'text',
+    default: "text",
   },
   name: {
     type: String,
@@ -16,25 +17,39 @@ defineProps({
   error: Boolean,
   disabled: Boolean,
   search: Boolean,
+  suffix: String,
 });
 
 const model = defineModel();
+const labelText = computed(() => props.label || props.placeholder || "");
+const inputPlaceholder = computed(() => (props.label ? (props.placeholder || "") : ""));
+const isFilled = computed(
+    () => model.value !== null && model.value !== undefined && model.value !== ""
+);
 </script>
 
 <template>
   <div class="input-wrapper">
-    <div class="input">
-      <IconSearch v-if="search" class="text-neutral-500 absolute top-1/2 right-3 -translate-y-1/2"/>
-      <!--  НЕ УБИРАТЬ placeholder=" "  -->
-      <input
-          :class="{ 'input--error': error }"
-          :type="type"
-          placeholder=" "
-          :name="name"
-          v-model="model"
-          :disabled="disabled"
-      />
-      <label class="input__label" :class="{ 'label--error': error }">{{ placeholder }}</label>
+    <div
+        class="input"
+        :class="{ 'input--error': error, 'input--disabled': disabled, 'input--filled': isFilled }"
+    >
+      <div class="input__row">
+        <input
+            :id="name"
+            class="input__field"
+            :type="type"
+            :placeholder="inputPlaceholder"
+            :name="name"
+            v-model="model"
+            :disabled="disabled"
+        />
+        <span v-if="suffix" class="input__suffix">{{ suffix }}</span>
+        <IconSearch v-if="search" class="input__icon"/>
+      </div>
+      <label v-if="labelText" class="input__label" :for="name">
+        {{ labelText }}
+      </label>
     </div>
   </div>
 </template>
@@ -45,68 +60,106 @@ const model = defineModel();
   position: relative;
 }
 
-.input__label {
-  font-size: 16px;
-  color: #858585;
-  position: absolute;
-  top: 14px;
-  left: 16px;
-  transition: 0.3s;
-  cursor: text;
-}
-
 .input {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 10px 16px 12px;
   position: relative;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.input input {
-  background-color: white;
+.input:focus-within {
+  border-color: #d5d5d5;
+  background-color: #f7f7f7;
+}
+
+.input__label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  line-height: 1.2;
+  color: #b0b0b0;
+  cursor: text;
+  transition: top 0.2s ease, transform 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+  z-index: 1;
+}
+
+.input__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.input__field {
+  flex: 1;
+  background-color: transparent;
   font-size: 16px;
-  border: 1px solid #CFD7DB;
-  padding: 16px;
-  border-radius: 10px;
+  font-weight: 500;
+  border: none;
+  padding: 0;
   outline: none;
   width: 100%;
-  height: 50px;
   color: #0c0c0d;
 }
 
-.input input::-webkit-inner-spin-button,
-.input input::-webkit-outer-spin-button {
+.input__field::placeholder {
+  color: #b0b0b0;
+}
+
+.input__field::-webkit-inner-spin-button,
+.input__field::-webkit-outer-spin-button {
   appearance: none;
   margin: 0;
 }
 
-.input input:focus + .input__label {
-  top: 5px;
-  z-index: 10;
-  font-size: 0.75rem;
+.input__field[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.input__suffix {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  padding-left: 12px;
+  border-left: 1px solid #e0e0e0;
+  color: #0c0c0d;
+  font-size: 16px;
   font-weight: 500;
 }
 
-.input input:focus {
-  padding-top: 25px;
-  background-color: #fff;
-  border: 1px solid #689675;
+.input__icon {
+  display: inline-flex;
 }
 
-.input input:not(:placeholder-shown) {
-  padding-top: 25px;
-  background-color: white;
-}
-
-.input input:not(:placeholder-shown) + .input__label {
-  top: 5px;
-  z-index: 10;
-  font-size: 0.75rem;
-  font-weight: 500;
+.input--filled .input__label,
+.input:focus-within .input__label {
+  top: -7px;
+  transform: translateY(0);
+  font-size: 12px;
 }
 
 .input--error {
-  border: 1px solid #e51414 !important;
+  border-color: #e51414;
 }
 
-.label--error {
+.input--error .input__label,
+.input--error .input__field,
+.input--error .input__suffix {
   color: #e51414;
+}
+
+.input--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input--disabled .input__field {
+  cursor: not-allowed;
 }
 </style>

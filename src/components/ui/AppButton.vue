@@ -20,18 +20,26 @@ const props = defineProps({
   transparent: Boolean,
   no_border: Boolean,
   price: Number,
-  secondary: Boolean
+  secondary: Boolean,
+  accent: Boolean,
+  block: Boolean,
+  elevated: Boolean,
+  md: Boolean,
 });
 
 const classObject = computed(() => {
   return {
     sm: props.sm,
+    md: props.md,
     big: props.big,
     transparent: props.transparent,
     gold: props.gold,
     icon: props.icon,
     no_border: props.no_border,
-    secondary: props.secondary
+    secondary: props.secondary,
+    accent: props.accent,
+    block: props.block,
+    elevated: props.elevated,
   };
 });
 
@@ -64,10 +72,10 @@ const hasSlots = computed(() => !!slots.default)
   justify-content: center;
   gap: 4px;
   padding: 0 20px;
-  height: 52px;
-  border-radius: 15px;
-  background: var(--green, #2f9e5f);
-  color: #fff;
+  height: 48px;
+  border-radius: 12px;
+  background: #E8EBE6;
+  color: #2C3029;
   font-size: var(--button-text-size, 14px);
   font-weight: var(--button-font-weight, 600);
   line-height: 1;
@@ -76,16 +84,24 @@ const hasSlots = computed(() => !!slots.default)
 }
 
 .button:hover {
-  background: var(--green-dark, #27844f);
+  background: #cbd1cb;
 }
 
 .button:active {
-  background: var(--green-dark, #27844f);
+  background: #cbd1cb;
 }
 
 .button:disabled {
   cursor: not-allowed;
-  color: var(--neutral-500, #737373);
+  background-color: var(--neutral-500, #737373);
+
+  &:hover {
+    background-color: var(--neutral-500, #737373);
+  }
+}
+
+.block {
+  width: 100%;
 }
 
 .button__slot {
@@ -174,5 +190,22 @@ const hasSlots = computed(() => !!slots.default)
 .secondary:hover,
 .secondary:active {
   background: var(--neutral-200, #e5e5e5);
+}
+
+.accent {
+  background-color: var(--accent, #ff8a2a);
+  border-radius: 12px;
+  height: 48px;
+  font-size: 15px;
+  color: #fff;
+}
+
+.accent:hover,
+.accent:active {
+  background-color: var(--accent-dark, #f27f22);
+}
+
+.elevated {
+  box-shadow: 0 8px 16px rgba(255, 138, 42, 0.2);
 }
 </style>

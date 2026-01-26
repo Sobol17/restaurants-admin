@@ -1,77 +1,93 @@
-<template>
-  <label class="apple-switch">
-    <input
-      type="checkbox"
-      v-model="isChecked"
-      @change="handleChange"
-    />
-    <span class="slider"></span>
-  </label>
-</template>
-
 <script setup>
-import { ref } from 'vue'
+import {computed} from "vue";
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  id: String,
+  name: String,
 });
 
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(["update:modelValue", "change"]);
 
-const isChecked = ref(props.modelValue);
-
-const handleChange = () => {
-  emit('update:modelValue', isChecked.value);
-  emit('change', isChecked.value);
-};
+const checked = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(value) {
+    emit("update:modelValue", value);
+    emit("change", value);
+  },
+});
 </script>
 
+<template>
+  <label class="app-switch">
+    <input
+        :id="id"
+        :name="name"
+        type="checkbox"
+        v-model="checked"
+        :disabled="disabled"
+    />
+    <span class="app-switch__track"></span>
+  </label>
+</template>
+
 <style scoped>
-.apple-switch {
+.app-switch {
   position: relative;
-  display: inline-block;
-  width: 42px;
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  width: 50px;
+  height: 26px;
+  cursor: pointer;
 }
 
-.apple-switch input {
+.app-switch input {
+  position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.slider {
+.app-switch__track {
   position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 30px;
+  inset: 0;
+  border-radius: 999px;
+  background-color: #e6e6e6;
+  transition: background-color 0.2s ease;
 }
 
-.slider:before {
-  position: absolute;
+.app-switch__track::before {
   content: "";
-  height: 20px;
+  position: absolute;
+  left: 3px;
+  top: 3px;
   width: 20px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.24s;
+  height: 20px;
   border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease;
 }
 
-input:checked + .slider {
-  background-color: #689675;
+.app-switch input:checked + .app-switch__track {
+  background-color: #ff8a2a;
 }
 
-input:checked + .slider:before {
-  transform: translateX(18px);
+.app-switch input:checked + .app-switch__track::before {
+  transform: translateX(24px);
+}
+
+.app-switch input:disabled + .app-switch__track {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

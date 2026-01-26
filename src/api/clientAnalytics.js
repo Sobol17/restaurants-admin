@@ -1,11 +1,16 @@
 import axiosInst from '@/api/axios.instance'
 
-const API_URL = '/restaurants/reviews'
+const API_URL = '/restaurants/analytics'
 
-export const getRestaurantReviews = restaurantId => {
+export const getRestaurantAnalytics = (restaurantId, start_date, end_date) => {
     const params = {}
-    if (restaurantId !== null && restaurantId !== undefined && restaurantId !== '') {
-        params.restaurant_id = restaurantId
+    params.restaurant_id = restaurantId
+
+    if (start_date) {
+        params.start_date = start_date
+    }
+    if (end_date) {
+        params.end_date = end_date
     }
 
     return axiosInst

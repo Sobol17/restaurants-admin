@@ -90,7 +90,6 @@ defineExpose({openModal, closeModal});
   position: sticky;
   top: 0;
   background: #fff;
-  padding: 10px;
   display: flex;
   justify-content: center;
   cursor: pointer;
@@ -100,7 +99,7 @@ defineExpose({openModal, closeModal});
   display: block;
   width: 28px;
   height: 5px;
-  background: var(--green-light-2, #b6e3c6);
+  background: transparent;
   border-radius: 3px;
 }
 

@@ -213,7 +213,7 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     return Number.isNaN(parsed) ? 0 : parsed
   }
 
-  const parseCuisinesInput = value => {
+  const parseCuisinesInput = (value, {wrapCuisine = false} = {}) => {
     if (!value || !value.trim()) {
       return []
     }
@@ -222,7 +222,7 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
         .split(',')
         .map(item => item.trim())
         .filter(Boolean)
-        .map(name => ({name}))
+        .map(name => (wrapCuisine ? {cuisine: {name}} : {name}))
   }
 
   const buildWorkingHoursPayload = () => {
@@ -359,7 +359,7 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
       latitude: toNumber(restaurantState.latitude),
       longitude: toNumber(restaurantState.longitude),
       payout_info: restaurantState.payoutInfo,
-      cuisines: parseCuisinesInput(restaurantState.cuisinesInput),
+      cuisines: parseCuisinesInput(restaurantState.cuisinesInput, {wrapCuisine: !isEdit.value}),
       working_hours: workingHours,
     }
 

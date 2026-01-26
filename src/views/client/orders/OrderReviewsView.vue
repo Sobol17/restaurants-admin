@@ -1,130 +1,102 @@
 <script setup>
-import {ref} from "vue";
-import {useNavigationStore} from "@/stores/client/navigation";
-import InfoCard from "@/components/InfoCard.vue";
-import FilterChip from "@/components/client-orders/FilterChip.vue";
-import ModalBottom from "@/components/ModalBottom.vue";
-import AppButton from "@/components/ui/AppButton.vue";
-import Datepicker from "@/components/ui/Datepicker.vue";
-import {useHistoryStore} from "@/stores/client/orderHistory";
-import {storeToRefs} from "pinia";
-import HistoryCard from "@/components/client-orders/HistoryCard.vue";
+import {onMounted} from 'vue'
+import {storeToRefs} from 'pinia'
+import {useNavigationStore} from '@/stores/client/navigation'
+import {useOrderReviewsStore} from '@/stores/client/orderReviews'
+import InfoCard from '@/components/InfoCard.vue'
+import IconStar from '@/components/icons/IconStar.vue'
+import RatingFilterChip from '@/components/client-orders/RatingFilterChip.vue'
+import ReviewCard from '@/components/client-orders/ReviewCard.vue'
 
 const navStore = useNavigationStore()
 const {changeTitle, changeBackLinkVisible} = navStore
 
-changeTitle("История заказов")
+changeTitle('Отзывы')
 changeBackLinkVisible(true)
 
-const historyStore = useHistoryStore()
+const reviewsStore = useOrderReviewsStore()
 const {
-  filterStatuses,
-  countOrders,
-  totalSum,
-  draftStatusIds,
-  draftDateRange,
-  isStatusFilterActive,
-  isDateFilterActive,
-  statusFilterLabel,
-  dateFilterLabel,
-  historyItems
-} = storeToRefs(historyStore)
-const {
-  openStatusModal,
-  openDateModal,
-  toggleStatus,
-  applyStatusFilter,
-  resetStatusFilter,
-  applyDateFilter,
-  resetDateFilter,
-} = historyStore
+  ratingFilters,
+  activeRating,
+  reviewsCount,
+  averageRatingLabel,
+  filteredReviews,
+  isLoading,
+} = storeToRefs(reviewsStore)
 
-const statusModal = ref(null)
-const dateModal = ref(null)
+const {setRatingFilter, loadReviews} = reviewsStore
+
+onMounted(loadReviews)
 </script>
 
 <template>
   <main>
-    <div class="history-view">
-      <div class="history-block">
-        <div class="history-infos">
-          <InfoCard :title="countOrders" subtitle="Количество заказов"/>
-          <InfoCard :title="totalSum" subtitle="Выручка за период"/>
+    <div class="reviews-view">
+      <div class="reviews-block">
+        <div class="reviews-infos">
+          <InfoCard :title="reviewsCount" subtitle="Отзывов получено"/>
+          <InfoCard subtitle="Ваш рейтинг" class="reviews-rating-card">
+            <template #title>
+              <IconStar class="reviews-rating-card__icon"/>
+              <span>{{ averageRatingLabel }}</span>
+            </template>
+          </InfoCard>
         </div>
       </div>
 
-      <div class="history-block">
-        <div class="history-filters">
-          <FilterChip :label="statusFilterLabel" :active="isStatusFilterActive" @change="openStatusModal(statusModal)"/>
-          <FilterChip :label="dateFilterLabel" :active="isDateFilterActive" @change="openDateModal(dateModal)"/>
+      <div class="reviews-block">
+        <div class="reviews-filters">
+          <RatingFilterChip
+              v-for="filter in ratingFilters"
+              :key="filter.id"
+              :label="filter.label"
+              :show-star="filter.showStar"
+              :active="activeRating === filter.value"
+              @click="setRatingFilter(filter.value)"
+          />
         </div>
       </div>
 
-      <div class="history-list">
-        <HistoryCard
-            v-for="(item, index) in historyItems"
-            :key="index"
-            :id="item.id"
-            :price="item.price"
-            :status="item.status"
-            :date="item.date"
-            :time="item.time"
-        />
+      <div class="reviews-list">
+        <div v-if="isLoading" class="reviews-loader" role="status" aria-live="polite">
+          <span class="reviews-loader__spinner" aria-label="Загрузка"></span>
+        </div>
+        <template v-else>
+          <ReviewCard
+              v-for="review in filteredReviews"
+              :key="review.id"
+              :order-id="review.orderId"
+              :time="review.time"
+              :date="review.date"
+              :rating="review.rating"
+              :comment="review.comment"
+          />
+          <div v-if="filteredReviews.length === 0" class="reviews-empty">
+            Нет отзывов
+          </div>
+        </template>
       </div>
     </div>
-
-    <ModalBottom ref="statusModal">
-      <div class="history-modal">
-        <div class="history-modal__title">По статусу</div>
-        <div class="history-modal__chips">
-          <button
-              v-for="status in filterStatuses"
-              :key="status.id"
-              type="button"
-              class="history-modal__chip"
-              :class="{'history-modal__chip--active': draftStatusIds.includes(status.id)}"
-              @click="toggleStatus(status.id)"
-          >
-            {{ status.label }}
-          </button>
-        </div>
-        <div class="history-modal__actions">
-          <AppButton text="Сбросить" block @click="resetStatusFilter(statusModal)"/>
-          <AppButton text="Применить" accent block @click="applyStatusFilter(statusModal)"/>
-        </div>
-      </div>
-    </ModalBottom>
-
-    <ModalBottom ref="dateModal">
-      <div class="history-modal">
-        <div class="history-modal__title">По дате</div>
-        <Datepicker v-model="draftDateRange"/>
-        <div class="history-modal__actions">
-          <AppButton text="Сбросить" block @click="resetDateFilter(dateModal)"/>
-          <AppButton text="Применить" accent block @click="applyDateFilter(dateModal)"/>
-        </div>
-      </div>
-    </ModalBottom>
   </main>
 </template>
 
 <style scoped lang="scss">
 @use "@/assets/layout/colors" as *;
 
-.history-block {
+.reviews-block {
   margin-top: 10px;
   background-color: #fff;
   border-radius: 12px;
   padding: 16px;
 }
 
-.history-infos {
+.reviews-infos {
   display: flex;
   justify-content: space-between;
   column-gap: 10px;
 }
 
-.history-filters {
+.reviews-filters {
   display: flex;
   align-items: center;
   column-gap: 10px;
@@ -132,7 +104,7 @@ const dateModal = ref(null)
   row-gap: 10px;
 }
 
-.history-list {
+.reviews-list {
   display: flex;
   flex-direction: column;
   row-gap: 16px;
@@ -140,46 +112,44 @@ const dateModal = ref(null)
   margin-bottom: 140px;
 }
 
-.history-modal {
-  padding: 6px 16px 20px;
+.reviews-loader {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
 }
 
-.history-modal__title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2c2c2c;
+.reviews-loader__spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid rgba(0, 0, 0, 0.08);
+  border-top-color: #2C3029;
+  animation: reviews-spin 0.8s linear infinite;
 }
 
-.history-modal__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+@keyframes reviews-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.history-modal__chip {
-  border: none;
-  background-color: $color-bg-muted;
-  padding: 10px 16px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #2c2c2c;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+.reviews-empty {
+  text-align: center;
+  color: #8c8c8c;
+  font-size: 14px;
+  padding: 24px 0;
 }
 
-.history-modal__chip--active {
-  background-color: $color-accent;
-  color: #fff;
+.reviews-rating-card :deep(.info-card__top) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.history-modal__actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 4px;
+.reviews-rating-card__icon {
+  width: 18px;
+  height: 18px;
+  color: $color-accent;
 }
 </style>
