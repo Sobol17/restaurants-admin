@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted} from 'vue'
+import {computed, onMounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useNavigationStore} from '@/stores/client/navigation'
 import {useMenuStore} from '@/stores/client/menu'
@@ -26,6 +26,7 @@ const {
   activeStatusId,
   activeCategoryLabel,
   filteredItems,
+  items,
   isLoading,
 } = storeToRefs(menuStore)
 const {setActiveCategory, setActiveStatus, toggleItemStatus, loadMenu} = menuStore
@@ -42,6 +43,36 @@ const openDishEdit = (id) => {
 const handleAddDish = () => {
   router.push({name: 'client-menu-item-new'})
 }
+
+const currentCategoryItems = computed(() => {
+  return items.value.filter(item => item.categoryId === activeCategoryId.value)
+})
+
+const emptyStateTitle = computed(() => {
+  if (!categories.value.length) {
+    return 'Категории пока не добавлены'
+  }
+
+  if (!currentCategoryItems.value.length) {
+    return 'В этой категории пока нет блюд'
+  }
+
+  return activeStatusId.value === 'inactive'
+    ? 'Нет неактивных блюд'
+    : 'Нет активных блюд'
+})
+
+const emptyStateText = computed(() => {
+  if (!categories.value.length) {
+    return 'Добавьте категорию и затем создайте первое блюдо.'
+  }
+
+  if (!currentCategoryItems.value.length) {
+    return 'Добавьте блюдо в выбранную категорию, и оно появится в списке.'
+  }
+
+  return 'Смените статусный фильтр или обновите статус блюда.'
+})
 
 onMounted(loadMenu)
 </script>
@@ -72,6 +103,10 @@ onMounted(loadMenu)
       <div class="menu-panel__list">
         <div v-if="isLoading" class="menu-loader" role="status" aria-live="polite">
           <span class="menu-loader__spinner" aria-label="Загрузка"></span>
+        </div>
+        <div v-else-if="filteredItems.length === 0" class="menu-empty" role="status" aria-live="polite">
+          <div class="menu-empty__title">{{ emptyStateTitle }}</div>
+          <p class="menu-empty__text">{{ emptyStateText }}</p>
         </div>
         <template v-else>
           <MenuDishCard
@@ -139,6 +174,33 @@ onMounted(loadMenu)
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.menu-empty {
+  min-height: 32vh;
+  border: 1px dashed #e4dccf;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffaf4 0%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.menu-empty__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c2c2c;
+}
+
+.menu-empty__text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b6b6b;
+  max-width: 260px;
 }
 
 .menu-loader {

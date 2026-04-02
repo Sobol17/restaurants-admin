@@ -7,10 +7,14 @@ import { useNavigationStore } from '@/stores/client/navigation'
 import { useProfileStore } from '@/stores/client/profile'
 import { getImagePath } from '@/utils/getImagePath'
 import { storeToRefs } from 'pinia'
+import { useToast } from 'primevue/usetoast'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const navStore = useNavigationStore()
 const { changeTitle, changeBackLinkVisible } = navStore
+const toast = useToast()
+const router = useRouter()
 
 changeTitle('Настройки ресторана')
 changeBackLinkVisible(true)
@@ -73,7 +77,7 @@ const buildSettingsPayload = () => {
     card_is_enabled: selectedPayments.value.includes('card'),
     promo_is_enabled: selectedPayments.value.includes('promo'),
     sbp_is_enabled: selectedPayments.value.includes('sbp'),
-    split_is_ebabled: selectedPayments.value.includes('split'),
+    split_is_enabled: selectedPayments.value.includes('split'),
     phone_payment_is_enabled: selectedPayments.value.includes('phone'),
     cash_is_enabled: selectedPayments.value.includes('cash'),
   }
@@ -150,6 +154,15 @@ const handleSave = async () => {
   }
 
   await loadProfile()
+
+  toast.add({
+    severity: 'success',
+    summary: 'Успех',
+    detail: 'Информация успешно обновлена',
+    life: 3000,
+  })
+
+  router.replace({ name: 'profile' })
 }
 
 onMounted(loadProfile)

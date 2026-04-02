@@ -6,6 +6,7 @@ import { useMenuStore } from '@/stores/client/menu'
 import { useNavigationStore } from '@/stores/client/navigation'
 import { getImagePath } from '@/utils/getImagePath'
 import { storeToRefs } from 'pinia'
+import { useToast } from 'primevue/usetoast'
 import {
   computed,
   onBeforeUnmount,
@@ -18,6 +19,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const navStore = useNavigationStore()
 const { changeTitle, changeBackLinkVisible } = navStore
@@ -207,7 +209,13 @@ const handleSave = async () => {
     const saved = await saveDish({ id: itemId.value, ...payload }, files)
     if (saved) {
       resetPendingFiles()
-      await loadDishById(itemId.value)
+      toast.add({
+        severity: 'success',
+        summary: 'Успех',
+        detail: 'Блюдо успешно обновлено',
+        life: 3000,
+      })
+      router.replace({ name: 'client-menu' })
     }
     return
   }
@@ -215,7 +223,13 @@ const handleSave = async () => {
   const newId = await createDish(payload, files)
   if (newId) {
     resetPendingFiles()
-    router.replace({ name: 'client-menu-item', params: { itemId: newId } })
+    toast.add({
+      severity: 'success',
+      summary: 'Успех',
+      detail: 'Блюдо успешно добавлено',
+      life: 3000,
+    })
+    router.replace({ name: 'client-menu' })
   }
 }
 

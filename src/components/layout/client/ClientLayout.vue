@@ -92,6 +92,7 @@ function isOutsideClicked(event) {
     <BottomNavigation/>
     <div class="layout-mask animate-fadein"></div>
   </div>
+  <Toast/>
 </template>
 
 <style>

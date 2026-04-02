@@ -1,6 +1,6 @@
 <script setup>
 
-import {InputText, Textarea} from 'primevue'
+import {AutoComplete, InputText, Textarea} from 'primevue'
 import {storeToRefs} from 'pinia'
 import {useRestaurantsStore} from '@/stores/restaurants'
 import {getImagePath} from '@/utils/getImagePath'
@@ -25,6 +25,9 @@ const {
   isDeleting,
   logoPreviewSrc,
   imagePreviewSrc,
+  isOwnersLoading,
+  ownerSuggestions,
+  ownerSearchValue,
 } = storeToRefs(restaurantsStore)
 
 const {
@@ -42,6 +45,10 @@ const {
   confirmDelete,
   handleDeleteDialog,
   handleSearch,
+  searchOwners,
+  handleOwnerSelect,
+  handleOwnerChange,
+  handleOwnerClear,
   formatBoolean,
   formatCuisines,
   getWorkingHoursList,
@@ -325,13 +332,22 @@ const {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="owner-id" class="block font-bold mb-3">ID владельца</label>
-            <InputText
+            <AutoComplete
                 id="owner-id"
-                v-model.trim="restaurantState.ownerId"
+                v-model="ownerSearchValue"
+                :suggestions="ownerSuggestions"
+                optionLabel="displayLabel"
+                dropdown
+                forceSelection
+                fluid
+                :loading="isOwnersLoading"
+                placeholder="Начните вводить ID, email или телефон"
                 required="true"
                 :invalid="submitted && !restaurantState.ownerId"
-                fluid
-                type="number"
+                @complete="searchOwners"
+                @option-select="handleOwnerSelect"
+                @change="handleOwnerChange"
+                @clear="handleOwnerClear"
             />
             <small v-if="submitted && !restaurantState.ownerId" class="text-red-500">Обязательное поле</small>
           </div>

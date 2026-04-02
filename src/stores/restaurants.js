@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
-import {computed, reactive, ref} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 import {useRestaurantsApi} from '@/services/useRestaurants'
+import {useCustomersApi} from '@/services/useCustomers'
 import {useToast} from 'primevue/usetoast'
 import {FilterMatchMode} from '@primevue/core/api'
 import {debounce} from '@/utils/debounce'
@@ -9,7 +10,9 @@ import {getImagePath} from '@/utils/getImagePath'
 
 export const useRestaurantsStore = defineStore('restaurants', () => {
   const {getList, create, update, updateImages, deleteElement} = useRestaurantsApi()
+  const {getList: getOwnersList} = useCustomersApi()
   const {data: restaurantsData, isLoading} = getList()
+  const {data: ownersData, isLoading: isOwnersLoading} = getOwnersList()
 
   const toast = useToast()
 
@@ -27,6 +30,30 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
   const restaurantsList = computed(() => {
     return restaurantsData?.value || []
   })
+
+  const createOwnerDisplayLabel = owner => {
+    const parts = [`ID ${owner.id}`]
+
+    if (owner.email) {
+      parts.push(owner.email)
+    }
+
+    if (owner.phone) {
+      parts.push(owner.phone)
+    }
+
+    return parts.join(' • ')
+  }
+
+  const ownersList = computed(() => {
+    return (ownersData?.value || []).map(owner => ({
+      ...owner,
+      displayLabel: createOwnerDisplayLabel(owner),
+    }))
+  })
+
+  const ownerSuggestions = ref([])
+  const ownerSearchValue = ref(null)
 
   const restaurantState = reactive({
     id: null,
@@ -106,6 +133,76 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     })
   }
 
+  const getOwnerSearchTokens = owner => {
+    return [
+      owner.displayLabel,
+      owner.role,
+      owner.name,
+    ]
+        .filter(Boolean)
+        .map(value => String(value).toLowerCase())
+  }
+
+  const searchOwners = event => {
+    const query = event.query?.trim().toLowerCase() ?? ''
+
+    ownerSuggestions.value = ownersList.value
+        .filter(owner => {
+          if (!query) {
+            return true
+          }
+
+          return getOwnerSearchTokens(owner).some(value => value.includes(query))
+        })
+        .slice(0, 20)
+  }
+
+  const handleOwnerSelect = event => {
+    ownerSearchValue.value = event.value ?? null
+    restaurantState.ownerId = event.value?.id ?? null
+  }
+
+  const handleOwnerChange = event => {
+    if (event.value && typeof event.value === 'object') {
+      restaurantState.ownerId = event.value.id ?? null
+      return
+    }
+
+    restaurantState.ownerId = null
+  }
+
+  const handleOwnerClear = () => {
+    ownerSearchValue.value = null
+    ownerSuggestions.value = []
+    restaurantState.ownerId = null
+  }
+
+  watch(
+      [ownersList, () => restaurantState.ownerId],
+      ([list, ownerId]) => {
+        const currentOwnerId = ownerSearchValue.value && typeof ownerSearchValue.value === 'object'
+            ? Number(ownerSearchValue.value.id)
+            : null
+        const parsedOwnerId = ownerId === null || ownerId === undefined || ownerId === ''
+            ? null
+            : Number(ownerId)
+
+        if (parsedOwnerId === null || Number.isNaN(parsedOwnerId)) {
+          if (ownerSearchValue.value && typeof ownerSearchValue.value === 'object') {
+            ownerSearchValue.value = null
+          }
+          return
+        }
+
+        if (currentOwnerId === parsedOwnerId) {
+          return
+        }
+
+        ownerSearchValue.value = list.find(owner => Number(owner.id) === parsedOwnerId) ?? null
+      },
+      {immediate: true},
+  )
+
   const hydrateWorkingHoursDays = workingHours => {
     resetWorkingHoursDays()
 
@@ -156,6 +253,8 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     restaurantState.longitude = null
     restaurantState.payoutInfo = ''
     restaurantState.cuisinesInput = ''
+    ownerSuggestions.value = []
+    ownerSearchValue.value = null
     resetWorkingHoursDays()
     resetPhotoState()
   }
@@ -478,6 +577,7 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
   return {
     restaurantsList,
     isLoading,
+    isOwnersLoading,
     filters,
     expandedRows,
     showDetailDialog,
@@ -494,6 +594,8 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     isDeleting,
     logoPreviewSrc,
     imagePreviewSrc,
+    ownerSuggestions,
+    ownerSearchValue,
     openNew,
     hideDialogs,
     editRestaurant,
@@ -508,6 +610,10 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     confirmDelete,
     handleDeleteDialog,
     handleSearch,
+    searchOwners,
+    handleOwnerSelect,
+    handleOwnerChange,
+    handleOwnerClear,
     formatBoolean,
     formatCuisines,
     getWorkingHoursList,
