@@ -1,5 +1,6 @@
 import axios from "axios";
 import router from "../router";
+import { useAuthStore } from "@/stores/auth";
 
 const axiosInst = axios.create({
     baseURL: "http://87.242.102.227:5000/",
@@ -28,8 +29,7 @@ axiosInst.interceptors.response.use(
             router.currentRoute.value.path !== "/auth/login" &&
             router.currentRoute.value.path !== "/auth/reset"
         ) {
-            localStorage.removeItem("access_token");
-            sessionStorage.removeItem("access_token");
+            useAuthStore().clearSession();
         }
         return Promise.reject(error);
     },

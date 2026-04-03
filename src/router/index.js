@@ -27,6 +27,14 @@ import ProfileSettingsView from '@/views/client/profile/ProfileSettingsView.vue'
 import ProfileView from '@/views/client/profile/ProfileView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
+const getDefaultAuthenticatedRoute = authStore => {
+  if (authStore.getUserRole() === 'restaurant_owner') {
+    return { name: 'profile' }
+  }
+
+  return { name: 'dashboard' }
+}
+
 const syncTokenFromRoute = (route, authStore) => {
   const routeToken = route?.query?.token
   const token = Array.isArray(routeToken) ? routeToken[0] : routeToken
@@ -236,15 +244,23 @@ router.beforeEach((to, from, next) => {
   syncTokenFromRoute(to, authStore)
 
   const isAuthenticated = !!authStore.getAccessToken()
+  const userRole = authStore.getUserRole()
+  const isAdminRoute = to.path.startsWith('/admin')
+  const isAuthRoute = ['login', 'accessDenied', 'error', 'register'].includes(to.name)
 
-  if (isAuthenticated && to.name === 'login') {
-    next({ name: 'dashboard' })
+  if (isAuthenticated && isAuthRoute) {
+    next(getDefaultAuthenticatedRoute(authStore))
+    return
+  }
+
+  if (isAuthenticated && userRole === 'restaurant_owner' && isAdminRoute) {
+    next({ name: 'profile' })
     return
   }
 
   if (
     !isAuthenticated &&
-    !['login', 'accessDenied', 'error', 'register'].includes(to.name)
+    !isAuthRoute
   ) {
     next({ name: 'accessDenied' })
     return

@@ -8,15 +8,30 @@ export const useAuthApi = (options = {}) => {
     const {onSuccess, onError, ...mutationOptions} = options
     const authStore = useAuthStore()
 
+    const getRouteByRole = role => {
+        if (role === 'restaurant_owner') {
+            return {name: 'profile'}
+        }
+
+        return {name: 'dashboard'}
+    }
+
+    const handleAuthSuccess = res => {
+        if (!res?.access_token) {
+            return
+        }
+
+        authStore.setAccessToken(res.access_token)
+        authStore.setMetadata(res.metadata ?? null)
+        router.replace(getRouteByRole(res.metadata?.role))
+    }
+
     const loginMutation = useMutationWithInvalidate({
         mutationFn: login,
         invalidateKeys: [authKeys.all],
         ...mutationOptions,
         onSuccess: (res, variables, context) => {
-            if (res && res.access_token) {
-                authStore.setAccessToken(res.access_token)
-                router.replace({name: 'dashboard'})
-            }
+            handleAuthSuccess(res)
 
             if (onSuccess) {
                 onSuccess(res, variables, context)
@@ -34,10 +49,7 @@ export const useAuthApi = (options = {}) => {
         invalidateKeys: [authKeys.all],
         ...mutationOptions,
         onSuccess: (res, variables, context) => {
-            if (res && res.access_token) {
-                authStore.setAccessToken(res.access_token)
-                router.replace({name: 'dashboard'})
-            }
+            handleAuthSuccess(res)
 
             if (onSuccess) {
                 onSuccess(res, variables, context)
