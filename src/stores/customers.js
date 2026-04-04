@@ -24,6 +24,7 @@ export const useCustomersStore = defineStore('customers', () => {
         {label: 'Клиент', value: 'customer'},
         {label: 'Курьер', value: 'courier'},
         {label: 'Владелец ресторана', value: 'restaurant_owner'},
+        {label: 'Менеджер', value: 'manager'},
         {label: 'Администратор', value: 'admin'},
     ])
 

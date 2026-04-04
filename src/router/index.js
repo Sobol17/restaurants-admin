@@ -44,6 +44,15 @@ const syncTokenFromRoute = (route, authStore) => {
   }
 }
 
+const syncRestaurantIdFromRoute = route => {
+  const raw = route?.query?.restaurantId
+  const restaurantId = Array.isArray(raw) ? raw[0] : raw
+
+  if (typeof restaurantId === 'string' && restaurantId.trim() !== '') {
+    localStorage.setItem('restaurant_id', restaurantId)
+  }
+}
+
 const router = createRouter({
   history: createWebHistory('/front/'),
   routes: [
@@ -242,6 +251,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   syncTokenFromRoute(to, authStore)
+  syncRestaurantIdFromRoute(to)
 
   const isAuthenticated = !!authStore.getAccessToken()
   const userRole = authStore.getUserRole()
@@ -258,11 +268,16 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  if (
-    !isAuthenticated &&
-    !isAuthRoute
-  ) {
-    next({ name: 'accessDenied' })
+  const managerAllowedRoutes = ['dashboard', 'orders']
+  if (isAuthenticated && userRole === 'manager' && isAdminRoute && !isAuthRoute) {
+    if (to.name && !managerAllowedRoutes.includes(to.name)) {
+      next({ name: 'orders' })
+      return
+    }
+  }
+
+  if (!isAuthenticated && !isAuthRoute) {
+    next({ name: 'login' })
     return
   }
 

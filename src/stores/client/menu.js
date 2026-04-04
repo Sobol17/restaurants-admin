@@ -1,17 +1,17 @@
-import {defineStore} from 'pinia'
-import {computed, ref} from 'vue'
 import axiosInst from '@/api/axios.instance'
-import {waitForRestaurantId} from '@/utils/restaurantId'
-import {debounce} from '@/utils/debounce'
+import { debounce } from '@/utils/debounce'
+import { waitForRestaurantId } from '@/utils/restaurantId'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
 const API_URL = '/restaurants'
 
-const buildStatusTabs = () => ([
-  {id: 'active', label: 'Активные', value: true},
-  {id: 'inactive', label: 'Неактивные', value: false},
-])
+const buildStatusTabs = () => [
+  { id: 'active', label: 'Активные', value: true },
+  { id: 'inactive', label: 'Неактивные', value: false },
+]
 
-const getCategoryLabel = (count) => {
+const getCategoryLabel = count => {
   const mod10 = count % 10
   const mod100 = count % 100
   if (mod100 >= 11 && mod100 <= 14) {
@@ -26,24 +26,26 @@ const getCategoryLabel = (count) => {
   return 'категорий'
 }
 
-const normalizeId = (id) => (id === null || id === undefined ? '' : String(id))
+const normalizeId = id => (id === null || id === undefined ? '' : String(id))
 
-const formatPrice = (value) => {
+const formatPrice = value => {
   const parsed = Number(value)
   const numeric = Number.isFinite(parsed) ? parsed : 0
   return `${numeric.toLocaleString('ru-RU')} ₽`
 }
 
-const parsePrice = (value) => {
+const parsePrice = value => {
   if (value === null || value === undefined || value === '') {
     return 0
   }
-  const normalized = String(value).replace(',', '.').replace(/[^\d.]/g, '')
+  const normalized = String(value)
+    .replace(',', '.')
+    .replace(/[^\d.]/g, '')
   const parsed = Number(normalized)
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-const normalizeNumber = (value) => {
+const normalizeNumber = value => {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
 }
@@ -60,7 +62,9 @@ const mapDish = (dish, index, fallbackCategoryId) => {
   const images = Array.isArray(dish?.images_urls)
     ? dish.images_urls.filter(Boolean)
     : []
-  const image = `http://87.242.102.227:5000${images[0]}` ?? 'https://placehold.co/96x96?text=Food'
+  const image =
+    `https://admin.daimfood.ru${images[0]}` ??
+    'https://placehold.co/96x96?text=Food'
   const categoryId = normalizeId(dish?.category?.id ?? fallbackCategoryId)
 
   return {
@@ -75,14 +79,17 @@ const mapDish = (dish, index, fallbackCategoryId) => {
   }
 }
 
-const mapDishDetails = (dish) => ({
+const mapDishDetails = dish => ({
   id: normalizeId(dish?.id),
   title: dish?.name ?? '',
-  price: dish?.price !== null && dish?.price !== undefined ? String(dish.price) : '',
+  price:
+    dish?.price !== null && dish?.price !== undefined ? String(dish.price) : '',
   description: dish?.description ?? '',
   categoryId: normalizeId(dish?.category?.id ?? dish?.category_id),
   isActive: !dish?.is_paused,
-  images: Array.isArray(dish?.images_urls) ? dish.images_urls.filter(Boolean) : [],
+  images: Array.isArray(dish?.images_urls)
+    ? dish.images_urls.filter(Boolean)
+    : [],
 })
 
 export const useMenuStore = defineStore('menu', () => {
@@ -108,19 +115,27 @@ export const useMenuStore = defineStore('menu', () => {
   const restaurantId = ref(null)
 
   const activeCategoryLabel = computed(() => {
-    return categories.value.find((item) => item.id === activeCategoryId.value)?.label ?? ''
+    return (
+      categories.value.find(item => item.id === activeCategoryId.value)
+        ?.label ?? ''
+    )
   })
 
   const activeStatusValue = computed(() => {
-    return statusTabs.value.find((tab) => tab.id === activeStatusId.value)?.value ?? true
+    return (
+      statusTabs.value.find(tab => tab.id === activeStatusId.value)?.value ??
+      true
+    )
   })
 
   const totalCount = computed(() => categories.value.length)
 
-  const totalLabel = computed(() => `${totalCount.value} ${getCategoryLabel(totalCount.value)}`)
+  const totalLabel = computed(
+    () => `${totalCount.value} ${getCategoryLabel(totalCount.value)}`,
+  )
 
   const filteredItems = computed(() => {
-    return items.value.filter((item) => {
+    return items.value.filter(item => {
       const matchesCategory = item.categoryId === activeCategoryId.value
       const matchesStatus = item.isActive === activeStatusValue.value
       return matchesCategory && matchesStatus
@@ -137,25 +152,27 @@ export const useMenuStore = defineStore('menu', () => {
     return id
   }
 
-  const getCategories = (id) => {
+  const getCategories = id => {
     return axiosInst
-      .get(`${API_URL}/categories`, {params: {restaurant_id: id}})
+      .get(`${API_URL}/categories`, { params: { restaurant_id: id } })
       .then(res => res.data)
   }
 
   const getDishesByCategory = (id, categoryId) => {
     return axiosInst
-      .get(`${API_URL}/categories/dishes`, {params: {restaurant_id: id, category_id: categoryId}})
+      .get(`${API_URL}/categories/dishes`, {
+        params: { restaurant_id: id, category_id: categoryId },
+      })
       .then(res => res.data)
   }
 
-  const addCategory = (name) => {
+  const addCategory = name => {
     return axiosInst
-      .post(`${API_URL}/menu/category/add`, null, {params: {name}})
+      .post(`${API_URL}/menu/category/add`, null, { params: { name } })
       .then(res => res.data)
   }
 
-  const updateCategory = (payload) => {
+  const updateCategory = payload => {
     return axiosInst
       .post(`${API_URL}/menu/category/update`, payload)
       .then(res => res.data)
@@ -165,80 +182,87 @@ export const useMenuStore = defineStore('menu', () => {
     const formData = new FormData()
     formData.append('image', file)
     return axiosInst
-      .post(`${API_URL}/menu/category/update/image`, formData, {params: {category_id: categoryId}})
+      .post(`${API_URL}/menu/category/update/image`, formData, {
+        params: { category_id: categoryId },
+      })
       .then(res => res.data)
   }
 
-  const removeCategory = (categoryId) => {
+  const removeCategory = categoryId => {
     return axiosInst
-      .post(`${API_URL}/menu/category/remove`, null, {params: {category_id: categoryId}})
+      .post(`${API_URL}/menu/category/remove`, null, {
+        params: { category_id: categoryId },
+      })
       .then(res => res.data)
   }
 
-  const getHints = (id) => {
+  const getHints = id => {
     return axiosInst
-      .get(`${API_URL}/hints`, {params: {restaurant_id: id}})
+      .get(`${API_URL}/hints`, { params: { restaurant_id: id } })
       .then(res => res.data)
   }
 
-  const getDish = (dishId) => {
+  const getDish = dishId => {
     return axiosInst
-      .get(`${API_URL}/dish`, {params: {dish_id: dishId}})
+      .get(`${API_URL}/dish`, { params: { dish_id: dishId } })
       .then(res => res.data)
   }
 
-  const addDish = (payload) => {
-    return axiosInst
-      .post(`${API_URL}/menu/add`, payload)
-      .then(res => res.data)
+  const addDish = payload => {
+    return axiosInst.post(`${API_URL}/menu/add`, payload).then(res => res.data)
   }
 
-  const updateDish = (payload) => {
+  const updateDish = payload => {
     return axiosInst
       .post(`${API_URL}/menu/update`, payload)
       .then(res => res.data)
   }
 
-  const removeDish = (dishId) => {
+  const removeDish = dishId => {
     return axiosInst
-      .post(`${API_URL}/menu/remove`, null, {params: {dish_id: dishId}})
+      .post(`${API_URL}/menu/remove`, null, { params: { dish_id: dishId } })
       .then(res => res.data)
   }
 
   const addDishImages = (dishId, files) => {
     const formData = new FormData()
-    files.forEach((file) => {
+    files.forEach(file => {
       formData.append('images', file)
     })
     return axiosInst
-      .post(`${API_URL}/menu/images/add`, formData, {params: {dish_id: dishId}})
+      .post(`${API_URL}/menu/images/add`, formData, {
+        params: { dish_id: dishId },
+      })
       .then(res => res.data)
   }
 
-  const setHints = (data) => {
+  const setHints = data => {
     hints.value = Array.isArray(data) ? data.filter(Boolean) : []
   }
 
-  const getCategoryById = (id) => {
+  const getCategoryById = id => {
     const normalized = normalizeId(id)
-    return categories.value.find((entry) => entry.id === normalized)
+    return categories.value.find(entry => entry.id === normalized)
   }
 
-  const applyCategories = (data) => {
+  const applyCategories = data => {
     const mappedCategories = Array.isArray(data) ? data.map(mapCategory) : []
     categories.value = mappedCategories
 
     const currentId = normalizeId(activeCategoryId.value)
-    const nextActiveId = mappedCategories.find((item) => item.id === currentId)?.id
-      ?? mappedCategories[0]?.id
-      ?? ''
+    const nextActiveId =
+      mappedCategories.find(item => item.id === currentId)?.id ??
+      mappedCategories[0]?.id ??
+      ''
     activeCategoryId.value = nextActiveId
     return nextActiveId
   }
 
   const replaceCategoryItems = (categoryId, nextItems) => {
     const normalizedCategoryId = normalizeId(categoryId)
-    const otherItems = items.value.filter((item) => item.categoryId !== normalizedCategoryId)
+    const otherItems = items.value.filter(
+      item => item.categoryId !== normalizedCategoryId,
+    )
     items.value = [...otherItems, ...nextItems]
   }
 
@@ -248,7 +272,9 @@ export const useMenuStore = defineStore('menu', () => {
     }
 
     const mapped = mapDish(dishData, 0, fallbackCategoryId)
-    const index = items.value.findIndex((entry) => normalizeId(entry.id) === mapped.id)
+    const index = items.value.findIndex(
+      entry => normalizeId(entry.id) === mapped.id,
+    )
     if (index >= 0) {
       items.value.splice(index, 1, mapped)
       return
@@ -257,7 +283,7 @@ export const useMenuStore = defineStore('menu', () => {
     items.value.unshift(mapped)
   }
 
-  const buildDishPayload = (form, {includeId = false} = {}) => {
+  const buildDishPayload = (form, { includeId = false } = {}) => {
     const payload = {
       name: form?.title?.trim() ?? '',
       price: parsePrice(form?.price),
@@ -273,7 +299,10 @@ export const useMenuStore = defineStore('menu', () => {
     return payload
   }
 
-  const loadDishesByCategory = async (categoryId, {skipLoading = false} = {}) => {
+  const loadDishesByCategory = async (
+    categoryId,
+    { skipLoading = false } = {},
+  ) => {
     const normalizedCategoryId = normalizeId(categoryId)
     if (!skipLoading) {
       isLoading.value = true
@@ -316,7 +345,7 @@ export const useMenuStore = defineStore('menu', () => {
       const nextActiveId = applyCategories(data)
 
       if (nextActiveId) {
-        await loadDishesByCategory(nextActiveId, {skipLoading: true})
+        await loadDishesByCategory(nextActiveId, { skipLoading: true })
       } else {
         items.value = []
       }
@@ -330,7 +359,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const loadCategories = async ({skipLoading = false} = {}) => {
+  const loadCategories = async ({ skipLoading = false } = {}) => {
     if (!skipLoading) {
       isLoading.value = true
     }
@@ -356,7 +385,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const addCategoryItem = (category) => {
+  const addCategoryItem = category => {
     const mapped = mapCategory(category, categories.value.length)
     categories.value = [mapped, ...categories.value]
     if (!activeCategoryId.value) {
@@ -364,7 +393,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const addCategoryAction = async (name) => {
+  const addCategoryAction = async name => {
     if (isCategorySaving.value) {
       return null
     }
@@ -378,7 +407,7 @@ export const useMenuStore = defineStore('menu', () => {
       if (data && typeof data === 'object' && data.id !== undefined) {
         addCategoryItem(data)
       } else {
-        await loadCategories({skipLoading: true})
+        await loadCategories({ skipLoading: true })
       }
       return data
     } catch (error) {
@@ -390,7 +419,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const persistCategoryName = debounce(async (payload) => {
+  const persistCategoryName = debounce(async payload => {
     if (!payload?.id) {
       return
     }
@@ -417,10 +446,10 @@ export const useMenuStore = defineStore('menu', () => {
     }
     categorySaveError.value = ''
     categoryDeleteError.value = ''
-    persistCategoryName({id, name})
+    persistCategoryName({ id, name })
   }
 
-  const deleteCategory = async (id) => {
+  const deleteCategory = async id => {
     if (isCategoryDeleting.value) {
       return false
     }
@@ -431,8 +460,10 @@ export const useMenuStore = defineStore('menu', () => {
     try {
       await removeCategory(id)
       const normalized = normalizeId(id)
-      categories.value = categories.value.filter((entry) => entry.id !== normalized)
-      items.value = items.value.filter((entry) => entry.categoryId !== normalized)
+      categories.value = categories.value.filter(
+        entry => entry.id !== normalized,
+      )
+      items.value = items.value.filter(entry => entry.categoryId !== normalized)
       if (activeCategoryId.value === normalized) {
         activeCategoryId.value = categories.value[0]?.id ?? ''
       }
@@ -484,7 +515,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const loadDishById = async (dishId) => {
+  const loadDishById = async dishId => {
     dishLoadError.value = ''
     dishSaveError.value = ''
     dishDeleteError.value = ''
@@ -516,7 +547,8 @@ export const useMenuStore = defineStore('menu', () => {
     try {
       const payload = buildDishPayload(form)
       const data = await addDish(payload)
-      const responseId = typeof data === 'number' ? data : data?.id ?? data?.dish_id
+      const responseId =
+        typeof data === 'number' ? data : (data?.id ?? data?.dish_id)
       const dishId = normalizeId(responseId)
       if (dishId && files.length) {
         await addDishImages(dishId, files)
@@ -529,7 +561,7 @@ export const useMenuStore = defineStore('menu', () => {
         price: data?.price ?? payload.price,
         description: data?.description ?? payload.description,
         is_paused: data?.is_paused ?? payload.is_paused,
-        category: data?.category ?? {id: payload.category_id},
+        category: data?.category ?? { id: payload.category_id },
         images_urls: Array.isArray(data?.images_urls) ? data.images_urls : [],
       }
       if (dishData.id) {
@@ -556,16 +588,17 @@ export const useMenuStore = defineStore('menu', () => {
     dishDeleteError.value = ''
     isDishSaving.value = true
     try {
-      const payload = buildDishPayload(form, {includeId: true})
+      const payload = buildDishPayload(form, { includeId: true })
       await updateDish(payload)
       if (files.length) {
         await addDishImages(payload.id, files)
       }
 
       const existing = getItemById(payload.id)
-      const existingImages = Array.isArray(existing?.images) && existing.images.length
-        ? existing.images
-        : existing?.image
+      const existingImages =
+        Array.isArray(existing?.images) && existing.images.length
+          ? existing.images
+          : existing?.image
             ? [existing.image]
             : []
       const dishData = {
@@ -574,7 +607,7 @@ export const useMenuStore = defineStore('menu', () => {
         price: payload.price,
         description: payload.description,
         is_paused: payload.is_paused,
-        category: {id: payload.category_id},
+        category: { id: payload.category_id },
         images_urls: existingImages,
       }
       upsertItemFromDish(dishData, payload.category_id)
@@ -588,7 +621,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const deleteDish = async (dishId) => {
+  const deleteDish = async dishId => {
     if (isDishDeleting.value) {
       return false
     }
@@ -613,7 +646,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const setActiveCategory = async (id) => {
+  const setActiveCategory = async id => {
     const normalizedCategoryId = normalizeId(id)
     if (normalizedCategoryId === activeCategoryId.value) {
       return
@@ -622,12 +655,12 @@ export const useMenuStore = defineStore('menu', () => {
     await loadDishesByCategory(normalizedCategoryId)
   }
 
-  const setActiveStatus = (id) => {
+  const setActiveStatus = id => {
     activeStatusId.value = id
   }
 
-  const getItemById = (id) => {
-    return items.value.find((entry) => normalizeId(entry.id) === normalizeId(id))
+  const getItemById = id => {
+    return items.value.find(entry => normalizeId(entry.id) === normalizeId(id))
   }
 
   const toggleItemStatus = (id, value) => {
@@ -637,12 +670,14 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  const removeItem = (id) => {
+  const removeItem = id => {
     const normalized = normalizeId(id)
-    items.value = items.value.filter((entry) => normalizeId(entry.id) !== normalized)
+    items.value = items.value.filter(
+      entry => normalizeId(entry.id) !== normalized,
+    )
   }
 
-  const addItem = (payload) => {
+  const addItem = payload => {
     const id = Date.now()
     const categoryId = normalizeId(payload.categoryId ?? activeCategoryId.value)
     items.value.unshift({

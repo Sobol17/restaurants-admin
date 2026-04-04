@@ -63,9 +63,13 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     minOrderSum: null,
     freeDeliveryFrom: null,
     loyaltyIsEnabled: false,
+    loyaltyPercent: null,
     cardIsEnabled: false,
     promoIsEnabled: false,
-    loyaltyPercent: null,
+    sbpIsEnabled: false,
+    splitIsEnabled: false,
+    phonePaymentIsEnabled: false,
+    cashIsEnabled: false,
     isPaused: false,
     isBanned: false,
     latitude: null,
@@ -244,9 +248,13 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     restaurantState.minOrderSum = null
     restaurantState.freeDeliveryFrom = null
     restaurantState.loyaltyIsEnabled = false
+    restaurantState.loyaltyPercent = null
     restaurantState.cardIsEnabled = false
     restaurantState.promoIsEnabled = false
-    restaurantState.loyaltyPercent = null
+    restaurantState.sbpIsEnabled = false
+    restaurantState.splitIsEnabled = false
+    restaurantState.phonePaymentIsEnabled = false
+    restaurantState.cashIsEnabled = false
     restaurantState.isPaused = false
     restaurantState.isBanned = false
     restaurantState.latitude = null
@@ -285,9 +293,13 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     restaurantState.freeDeliveryFrom = item.freeDeliveryFrom ?? null
     hydrateWorkingHoursDays(item.workingHours)
     restaurantState.loyaltyIsEnabled = !!item.loyaltyIsEnabled
+    restaurantState.loyaltyPercent = item.loyaltyPercent ?? null
     restaurantState.cardIsEnabled = !!item.cardIsEnabled
     restaurantState.promoIsEnabled = !!item.promoIsEnabled
-    restaurantState.loyaltyPercent = item.loyaltyPercent ?? null
+    restaurantState.sbpIsEnabled = !!item.sbpIsEnabled
+    restaurantState.splitIsEnabled = !!item.splitIsEnabled
+    restaurantState.phonePaymentIsEnabled = !!item.phonePaymentIsEnabled
+    restaurantState.cashIsEnabled = !!item.cashIsEnabled
     restaurantState.isPaused = !!item.isPaused
     restaurantState.isBanned = !!item.isBanned
     restaurantState.latitude = item.latitude ?? null
@@ -450,9 +462,13 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
       min_order_sum: toNumber(restaurantState.minOrderSum),
       free_delivery_from: toNumber(restaurantState.freeDeliveryFrom),
       loyalty_is_enabled: restaurantState.loyaltyIsEnabled,
+      loyalty_percent: toNumber(restaurantState.loyaltyPercent),
       card_is_enabled: restaurantState.cardIsEnabled,
       promo_is_enabled: restaurantState.promoIsEnabled,
-      loyalty_percent: toNumber(restaurantState.loyaltyPercent),
+      sbp_is_enabled: restaurantState.sbpIsEnabled,
+      split_is_enabled: restaurantState.splitIsEnabled,
+      phone_payment_is_enabled: restaurantState.phonePaymentIsEnabled,
+      cash_is_enabled: restaurantState.cashIsEnabled,
       is_paused: restaurantState.isPaused,
       is_banned: restaurantState.isBanned,
       latitude: toNumber(restaurantState.latitude),
