@@ -298,6 +298,11 @@ export const useProfileStore = defineStore('profile', () => {
         }
     };
 
+    const clearCache = () => {
+        restaurantId.value = null
+        profile.value = null
+    }
+
     return {
         profile,
         restaurantId,
@@ -317,5 +322,6 @@ export const useProfileStore = defineStore('profile', () => {
         addBreak,
         loadProfile,
         saveSettings,
+        clearCache,
     }
 })

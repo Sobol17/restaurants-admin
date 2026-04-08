@@ -191,18 +191,42 @@ const removePhoto = index => {
   }
 }
 
+const validationError = ref('')
+
+const validate = () => {
+  if (!form.value.title.trim()) {
+    validationError.value = 'Укажите название блюда'
+    return false
+  }
+  if (!form.value.price.trim()) {
+    validationError.value = 'Укажите цену'
+    return false
+  }
+  if (!form.value.categoryId) {
+    validationError.value = 'Выберите категорию'
+    return false
+  }
+  validationError.value = ''
+  return true
+}
+
+const buildPayload = () => ({
+  title: form.value.title,
+  price: form.value.price,
+  categoryId: form.value.categoryId,
+  description: form.value.description,
+  isActive: form.value.isActive,
+})
+
 const handleSave = async () => {
   if (isDishSaving.value || isDishDeleting.value || isDishLoading.value) {
     return
   }
-
-  const payload = {
-    title: form.value.title,
-    price: form.value.price,
-    categoryId: form.value.categoryId,
-    description: form.value.description,
-    isActive: form.value.isActive,
+  if (!validate()) {
+    return
   }
+
+  const payload = buildPayload()
   const files = pendingFiles.value.map(item => item.file)
 
   if (isEdit.value) {
@@ -230,6 +254,29 @@ const handleSave = async () => {
       life: 3000,
     })
     router.replace({ name: 'client-menu' })
+  }
+}
+
+const handleSaveAndContinue = async () => {
+  if (isDishSaving.value || isDishDeleting.value || isDishLoading.value) {
+    return
+  }
+  if (!validate()) {
+    return
+  }
+
+  const payload = buildPayload()
+  const files = pendingFiles.value.map(item => item.file)
+
+  const newId = await createDish(payload, files)
+  if (newId) {
+    toast.add({
+      severity: 'success',
+      summary: 'Успех',
+      detail: 'Блюдо добавлено',
+      life: 2000,
+    })
+    initForm()
   }
 }
 
@@ -280,7 +327,10 @@ onBeforeUnmount(() => {
       <span class="menu-dish-detail__spinner" aria-label="Загрузка"></span>
     </div>
     <template v-else>
-      <p v-if="errorMessage" class="menu-dish-detail__error" role="alert">
+      <p v-if="validationError" class="menu-dish-detail__error" role="alert">
+        {{ validationError }}
+      </p>
+      <p v-else-if="errorMessage" class="menu-dish-detail__error" role="alert">
         {{ errorMessage }}
       </p>
       <section class="menu-dish-detail__section">
@@ -377,6 +427,15 @@ onBeforeUnmount(() => {
           @click="handleSave"
         >
           {{ isEdit ? 'Сохранить' : 'Добавить блюдо' }}
+        </button>
+        <button
+          v-if="!isEdit"
+          type="button"
+          class="menu-dish-detail__btn menu-dish-detail__btn--muted"
+          :disabled="isDishSaving"
+          @click="handleSaveAndContinue"
+        >
+          Сохранить и продолжить
         </button>
       </div>
 

@@ -49,8 +49,8 @@ const errorMessage = computed(() => loadError.value || saveError.value)
 const applyProfileData = data => {
   restaurantName.value = data?.name ?? ''
   restaurantAddress.value = data?.address ?? ''
-  restaurantContact.value = data?.payout_info ?? ''
-  restaurantDescription.value = data?.description ?? ''
+  restaurantContact.value = data?.contacts ?? ''
+  restaurantDescription.value = data?.about ?? ''
   pauseText.value = data?.pause_text ?? ''
 }
 
@@ -85,11 +85,11 @@ const buildSettingsPayload = () => {
   if (profile.value?.address !== undefined) {
     payload.address = restaurantAddress.value?.trim() ?? ''
   }
-  if (profile.value?.payout_info !== undefined) {
-    payload.payout_info = restaurantContact.value?.trim() ?? ''
+  if (profile.value?.contacts !== undefined) {
+    payload.contacts = restaurantContact.value?.trim() ?? ''
   }
-  if (profile.value?.description !== undefined) {
-    payload.description = restaurantDescription.value?.trim() ?? ''
+  if (profile.value?.about !== undefined) {
+    payload.about = restaurantDescription.value?.trim() ?? ''
   }
   if (profile.value?.pause_text !== undefined) {
     payload.pause_text = pauseText.value?.trim() ?? ''

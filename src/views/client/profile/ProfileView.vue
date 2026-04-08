@@ -8,11 +8,14 @@ import IconPrivacy from '@/components/icons/IconPrivacy.vue'
 import IconProfileSettings from '@/components/icons/IconProfileSettings.vue'
 import ProfileRow from '@/components/profile/ProfileRow.vue'
 import AppSwitch from '@/components/ui/AppSwitch.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useMenuStore } from '@/stores/client/menu'
 import { useNavigationStore } from '@/stores/client/navigation'
 import { useProfileStore } from '@/stores/client/profile'
 import { getImagePath } from '@/utils/getImagePath'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const navStore = useNavigationStore()
 const { changeTitle } = navStore
@@ -21,6 +24,17 @@ changeTitle('Профиль')
 
 const profileStore = useProfileStore()
 const { profile, isLoading, loadError } = storeToRefs(profileStore)
+
+const authStore = useAuthStore()
+const menuStore = useMenuStore()
+const router = useRouter()
+
+function handleLogout() {
+  authStore.clearSession()
+  profileStore.clearCache()
+  menuStore.clearCache()
+  router.push('/auth/login')
+}
 
 const profileName = computed(() => profile.value?.name ?? 'Название')
 const profileAvatar = computed(
@@ -78,9 +92,9 @@ const thirdMenuList = [
   },
   {
     title: 'Выйти',
-    link: 'client/profile',
     red: true,
     icon: IconLogout,
+    action: handleLogout,
   },
 ]
 </script>
@@ -142,7 +156,7 @@ const thirdMenuList = [
         <div class="profile-block">
           <div
             v-for="item in thirdMenuList"
-            :key="item.link"
+            :key="item.title"
             class="profile-block__item"
           >
             <ProfileRow
@@ -150,6 +164,7 @@ const thirdMenuList = [
               :link="item.link"
               :icon="item.icon"
               :invalid="item.red"
+              :action="item.action"
             />
           </div>
         </div>

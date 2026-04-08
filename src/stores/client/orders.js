@@ -166,13 +166,8 @@ export const useClientOrdersStore = defineStore('clientOrders', () => {
                 return
             }
 
-            const statuses = [...new Set(categoryDefinitions.flatMap(definition => definition.statuses))]
-            const responses = await Promise.all(
-                statuses.map(status => getRestaurantOrders(restaurantId, {status}))
-            )
-
-            const combined = responses.flatMap((data) => (Array.isArray(data) ? data : []))
-            orders.value = dedupeOrders(combined)
+            const data = await getRestaurantOrders(restaurantId)
+            orders.value = Array.isArray(data) ? data : []
             ensureActiveCategory()
         } catch (error) {
             console.error('Failed to load restaurant orders.', error)

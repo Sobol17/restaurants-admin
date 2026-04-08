@@ -663,10 +663,27 @@ export const useMenuStore = defineStore('menu', () => {
     return items.value.find(entry => normalizeId(entry.id) === normalizeId(id))
   }
 
-  const toggleItemStatus = (id, value) => {
+  const toggleItemStatus = async (id, value) => {
     const item = getItemById(id)
-    if (item) {
-      item.isActive = value
+    if (!item) {
+      return
+    }
+
+    const previous = item.isActive
+    item.isActive = value
+
+    try {
+      await updateDish({
+        id: normalizeNumber(item.id),
+        name: item.title,
+        price: parsePrice(item.price),
+        description: item.description ?? '',
+        category_id: normalizeNumber(item.categoryId),
+        is_paused: !value,
+      })
+    } catch (error) {
+      item.isActive = previous
+      console.error('Failed to toggle dish status.', error)
     }
   }
 
@@ -702,6 +719,13 @@ export const useMenuStore = defineStore('menu', () => {
 
   const clearDish = () => {
     dish.value = null
+  }
+
+  const clearCache = () => {
+    restaurantId.value = null
+    categories.value = []
+    items.value = []
+    activeCategoryId.value = ''
   }
 
   return {
@@ -746,6 +770,7 @@ export const useMenuStore = defineStore('menu', () => {
     saveDish,
     deleteDish,
     clearDish,
+    clearCache,
     loadDishesByCategory,
   }
 })
