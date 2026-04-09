@@ -7,7 +7,6 @@ import IconMessage from '@/components/icons/IconMessage.vue'
 import IconPrivacy from '@/components/icons/IconPrivacy.vue'
 import IconProfileSettings from '@/components/icons/IconProfileSettings.vue'
 import ProfileRow from '@/components/profile/ProfileRow.vue'
-import AppSwitch from '@/components/ui/AppSwitch.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/client/menu'
 import { useNavigationStore } from '@/stores/client/navigation'
@@ -133,10 +132,10 @@ const thirdMenuList = [
               :icon="item.icon"
             />
           </div>
-          <div class="profile-block__switch">
+          <!-- <div class="profile-block__switch">
             <p>Статус работы</p>
             <AppSwitch />
-          </div>
+          </div> -->
         </div>
 
         <div class="profile-block">

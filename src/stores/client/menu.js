@@ -208,8 +208,15 @@ export const useMenuStore = defineStore('menu', () => {
       .then(res => res.data)
   }
 
-  const addDish = payload => {
-    return axiosInst.post(`${API_URL}/menu/add`, payload).then(res => res.data)
+  const addDish = (payload, files = []) => {
+    const formData = new FormData()
+    formData.append('name', payload.name)
+    formData.append('price', payload.price)
+    formData.append('description', payload.description)
+    formData.append('category_id', payload.category_id)
+    formData.append('is_paused', payload.is_paused)
+    files.forEach(file => formData.append('images', file))
+    return axiosInst.post(`${API_URL}/menu/add`, formData).then(res => res.data)
   }
 
   const updateDish = payload => {
@@ -546,13 +553,10 @@ export const useMenuStore = defineStore('menu', () => {
     isDishSaving.value = true
     try {
       const payload = buildDishPayload(form)
-      const data = await addDish(payload)
+      const data = await addDish(payload, files)
       const responseId =
         typeof data === 'number' ? data : (data?.id ?? data?.dish_id)
       const dishId = normalizeId(responseId)
-      if (dishId && files.length) {
-        await addDishImages(dishId, files)
-      }
 
       const dishData = {
         ...payload,

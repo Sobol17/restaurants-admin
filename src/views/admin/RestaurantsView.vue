@@ -63,7 +63,6 @@ const {
   handleSearch,
   searchOwners,
   handleOwnerSelect,
-  handleOwnerChange,
   handleOwnerClear,
   formatBoolean,
   formatCuisines,
@@ -427,8 +426,6 @@ const {
               :invalid="submitted && !restaurantState.ownerId"
               @complete="searchOwners"
               @option-select="handleOwnerSelect"
-              @change="handleOwnerChange"
-              @clear="handleOwnerClear"
             />
             <small
               v-if="submitted && !restaurantState.ownerId"

@@ -46,10 +46,12 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
   }
 
   const ownersList = computed(() => {
-    return (ownersData?.value || []).map(owner => ({
-      ...owner,
-      displayLabel: createOwnerDisplayLabel(owner),
-    }))
+    return (ownersData?.value || [])
+      .filter(owner => owner.role === 'restaurant_owner')
+      .map(owner => ({
+        ...owner,
+        displayLabel: createOwnerDisplayLabel(owner),
+      }))
   })
 
   const ownerSuggestions = ref([])
@@ -287,6 +289,13 @@ export const useRestaurantsStore = defineStore('restaurants', () => {
     submitted.value = false
     restaurantState.id = item.id
     restaurantState.ownerId = item.ownerId ?? item.owner?.id ?? null
+
+    if (item.owner) {
+      ownerSearchValue.value = {
+        ...item.owner,
+        displayLabel: createOwnerDisplayLabel(item.owner),
+      }
+    }
     restaurantState.name = item.name ?? ''
     restaurantState.address = item.address ?? ''
     restaurantState.minOrderSum = item.minOrderSum ?? null
